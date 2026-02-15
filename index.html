@@ -3,218 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة صائد الكلمات - مشروع GitHub</title>
-    
+    <title>لعبة صائد الكلمات - نظام المتصدرين</title>
     <style>
-        /* --- قسم التصميم (CSS) --- */
         :root {
-            --primary: #4361ee;
-            --secondary: #3f37c9;
-            --success: #4cc9f0;
-            --danger: #f72585;
-            --light: #f8f9fa;
-            --dark: #212529;
+            --primary: #6366f1;
+            --gold: #ffcf33;
+            --bg: #0f172a;
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #4361ee, #4cc9f0);
+            background: var(--bg);
+            color: white;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            color: var(--dark);
         }
-
-        .card {
-            background: white;
+        .container {
+            background: #1e293b;
             padding: 30px;
             border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            width: 100%;
-            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 500px;
             text-align: center;
-            transition: transform 0.3s ease;
         }
-
-        h2 { margin-bottom: 20px; color: var(--secondary); }
-
         input {
-            width: 100%;
+            width: 80%;
             padding: 12px;
             margin: 10px 0;
-            border: 2px solid #eee;
-            border-radius: 10px;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.3s;
+            border-radius: 8px;
+            border: none;
+            background: #334155;
+            color: white;
+            font-size: 16px;
         }
-
-        input:focus { border-color: var(--primary); }
-
         button {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--primary);
+            padding: 12px 25px;
+            background: var(--primary);
             color: white;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 16px;
             font-weight: bold;
-            margin-top: 10px;
+            transition: 0.3s;
         }
-
-        button:hover { background-color: var(--secondary); }
-
-        .scrambled-box {
-            background: #f1f3f5;
-            padding: 20px;
-            border-radius: 15px;
-            margin: 20px 0;
+        button:hover { opacity: 0.9; transform: scale(1.05); }
+        .scrambled {
             font-size: 2.5rem;
-            letter-spacing: 8px;
-            color: var(--primary);
-            font-weight: 900;
-            text-shadow: 2px 2px #fff;
+            color: var(--gold);
+            letter-spacing: 5px;
+            margin: 20px 0;
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
         }
-
-        #message { height: 20px; font-weight: bold; margin: 10px 0; }
-        .success { color: #2ecc71; }
-        .error { color: var(--danger); }
-
-        #toggle-link {
-            color: var(--primary);
-            cursor: pointer;
-            display: block;
-            margin-top: 15px;
-            font-size: 14px;
-            text-decoration: underline;
+        .leaderboard {
+            margin-top: 30px;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: right;
         }
-
-        .stats {
+        .leader-item {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
+            padding: 5px 0;
+            border-bottom: 1px solid #334155;
         }
-
-        .logout-btn { background: #6c757d; font-size: 12px; padding: 5px; width: auto; margin-top: 20px; }
+        #win-screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .dev-badge {
+            background: var(--gold);
+            color: black;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-    <div class="card">
+    <div id="win-screen">
+        <h1 style="color: var(--gold); font-size: 3rem;">🏆 مبروك الفوز! 🏆</h1>
+        <p>لقد وصلت إلى القمة وسيطرت على لوحة المتصدرين</p>
+        <button onclick="location.reload()">العب مرة أخرى</button>
+    </div>
+
+    <div class="container">
         <div id="auth-ui">
-            <h2 id="auth-title">إنشاء حساب</h2>
-            <input type="text" id="user-input" placeholder="اسم المستخدم">
-            <input type="password" id="pass-input" placeholder="كلمة المرور">
-            <button onclick="handleAuth()" id="main-btn">سجل الآن</button>
-            <span id="toggle-link" onclick="toggleMode()">لديك حساب؟ سجل دخولك</span>
+            <h2>تسجيل الدخول / إنشاء حساب</h2>
+            <input type="text" id="username" placeholder="اسم المستخدم">
+            <input type="password" id="password" placeholder="كلمة المرور">
+            <button onclick="login()">دخول</button>
+            <p style="font-size: 12px; color: #94a3b8;">تلميح: جرب حساب المطور (team)</p>
         </div>
 
         <div id="game-ui" style="display: none;">
-            <h2 id="welcome-msg">مرحباً!</h2>
-            <div class="scrambled-box" id="word-display">----</div>
-            <p>رتب الحروف لتكوين كلمة صحيحة</p>
-            <input type="text" id="guess-input" placeholder="أدخل الكلمة هنا...">
-            <button onclick="checkAnswer()">تأكيد الإجابة</button>
-            <div id="message"></div>
-            
-            <div class="stats">
-                <span>النقاط: <strong id="score-val">0</strong></span>
-                <button class="logout-btn" onclick="location.reload()">تسجيل خروج</button>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="user-tag"></span>
+                <span>النقاط: <strong id="score-display">0</strong> / 50</span>
             </div>
+            
+            <div class="scrambled" id="scrambled-word">----</div>
+            <input type="text" id="guess-input" placeholder="رتب الكلمة هنا...">
+            <button onclick="checkAnswer()">تحقق</button>
+            <p id="feedback"></p>
+
+            <div class="leaderboard">
+                <h3 style="margin-top: 0; color: var(--gold);">🏅 قائمة المتصدرين</h3>
+                <div id="leaders-list"></div>
+            </div>
+            <button onclick="location.reload()" style="background: #ef4444; margin-top: 15px; width: 100%;">خروج</button>
         </div>
     </div>
 
     <script>
-        /* --- قسم البرمجة (JavaScript) --- */
-        
-        let isLoginMode = false;
+        const words = ["برمج", "تطوير", "موقع", "جافاسكربت", "حاسوب", "تقنية", "كود", "مستقبل", "إبداع", "تعلم"];
         let currentWord = "";
+        let currentUsername = "";
         let score = 0;
-        const wordList = ["برمجة", "موقع", "مطور", "سيرفر", "بيانات", "تقنية", "ذكاء", "حاسوب", "شاشة", "لوحة"];
 
-        // 1. إدارة تسجيل الدخول والإنشاء
-        function toggleMode() {
-            isLoginMode = !isLoginMode;
-            document.getElementById('auth-title').innerText = isLoginMode ? "تسجيل الدخول" : "إنشاء حساب";
-            document.getElementById('main-btn').innerText = isLoginMode ? "دخول" : "سجل الآن";
-            document.getElementById('toggle-link').innerText = isLoginMode ? "ليس لديك حساب؟ أنشئ واحداً" : "لديك حساب؟ سجل دخولك";
-        }
+        // 1. نظام تسجيل الدخول (مع حساب المطور)
+        function login() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
 
-        function handleAuth() {
-            const user = document.getElementById('user-input').value;
-            const pass = document.getElementById('pass-input').value;
+            if (!user || !pass) return alert("أدخل البيانات!");
 
-            if (user.length < 3 || pass.length < 3) {
-                alert("يرجى إدخال بيانات صحيحة (3 حروف على الأقل)");
-                return;
-            }
-
-            if (isLoginMode) {
-                const storedPass = localStorage.getItem(user);
-                if (storedPass === pass) {
-                    initGame(user);
-                } else {
-                    alert("خطأ في الاسم أو كلمة المرور!");
-                }
+            // حساب المطور الخاص بك
+            if (user === "team" && pass === "team") {
+                currentUsername = "تيم 🛠️";
+                startAsDev();
             } else {
-                localStorage.setItem(user, pass);
-                alert("تم إنشاء الحساب بنجاح! يمكنك الآن الدخول.");
-                toggleMode();
+                currentUsername = user;
+                // إنشاء حساب تلقائي إذا لم يوجد
+                if (!localStorage.getItem('user_' + user)) {
+                    localStorage.setItem('user_' + user, pass);
+                } else if (localStorage.getItem('user_' + user) !== pass) {
+                    return alert("كلمة المرور خاطئة!");
+                }
+                startGame();
             }
         }
 
-        // 2. إدارة اللعبة
-        function initGame(username) {
+        function startGame() {
             document.getElementById('auth-ui').style.display = 'none';
             document.getElementById('game-ui').style.display = 'block';
-            document.getElementById('welcome-msg').innerText = "أهلاً " + username;
-            generateWord();
+            document.getElementById('user-tag').innerText = "اللاعب: " + currentUsername;
+            updateLeaderboard();
+            nextWord();
         }
 
-        function generateWord() {
-            currentWord = wordList[Math.floor(Math.random() * wordList.length)];
-            // تبعثر الكلمة
+        function startAsDev() {
+            startGame();
+            document.getElementById('user-tag').innerHTML = `<span class="dev-badge">مطور</span> ${currentUsername}`;
+            console.log("Developer mode activated.");
+        }
+
+        // 2. نظام اللعبة
+        function nextWord() {
+            currentWord = words[Math.floor(Math.random() * words.length)];
             let scrambled = currentWord.split('').sort(() => Math.random() - 0.5).join('');
-            
-            // التأكد أن الكلمة المبعثرة ليست نفس الأصلية
-            if(scrambled === currentWord) return generateWord();
-            
-            document.getElementById('word-display').innerText = scrambled;
+            document.getElementById('scrambled-word').innerText = scrambled;
             document.getElementById('guess-input').value = "";
-            document.getElementById('message').innerText = "";
         }
 
         function checkAnswer() {
-            const userGuess = document.getElementById('guess-input').value.trim();
-            const msgArea = document.getElementById('message');
+            const guess = document.getElementById('guess-input').value.trim();
+            const feedback = document.getElementById('feedback');
 
-            if (userGuess === currentWord) {
+            if (guess === currentWord) {
                 score += 10;
-                document.getElementById('score-val').innerText = score;
-                msgArea.innerText = "أحسنت! إجابة صحيحة ✅";
-                msgArea.className = "success";
-                setTimeout(generateWord, 1500);
+                document.getElementById('score-display').innerText = score;
+                feedback.innerText = "✅ صحيح! +10 نقاط";
+                feedback.style.color = "#4ade80";
+                
+                saveHighScore();
+                updateLeaderboard();
+
+                if (score >= 50) {
+                    showWinScreen();
+                } else {
+                    setTimeout(nextWord, 1000);
+                }
             } else {
-                msgArea.innerText = "إجابة خاطئة، حاول ثانية ❌";
-                msgArea.className = "error";
+                feedback.innerText = "❌ خطأ، حاول ثانية";
+                feedback.style.color = "#f87171";
             }
         }
 
-        // دعم الضغط على زر Enter للإدخال
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                if (document.getElementById('game-ui').style.display === 'block') {
-                    checkAnswer();
-                } else {
-                    handleAuth();
-                }
+        // 3. نظام المتصدرين
+        function saveHighScore() {
+            let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+            // تحديث سكور المستخدم الحالي
+            let userIndex = leaderboard.findIndex(item => item.name === currentUsername);
+            if (userIndex > -1) {
+                if(score > leaderboard[userIndex].score) leaderboard[userIndex].score = score;
+            } else {
+                leaderboard.push({ name: currentUsername, score: score });
             }
+            // ترتيب من الأعلى للأقل
+            leaderboard.sort((a, b) => b.score - a.score);
+            localStorage.setItem('leaderboard', JSON.stringify(leaderboard.slice(0, 5))); // حفظ أعلى 5 فقط
+        }
+
+        function updateLeaderboard() {
+            let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+            const listDiv = document.getElementById('leaders-list');
+            listDiv.innerHTML = leaderboard.map((player, index) => `
+                <div class="leader-item">
+                    <span>${index + 1}. ${player.name}</span>
+                    <span style="color:var(--gold)">${player.score} ن</span>
+                </div>
+            `).join('');
+        }
+
+        function showWinScreen() {
+            document.getElementById('win-screen').style.display = 'flex';
+        }
+
+        // دعم الـ Enter
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkAnswer();
         });
     </script>
 </body>
