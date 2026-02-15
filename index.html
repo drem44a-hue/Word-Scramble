@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة صائد الكلمات - مشروع GitHub</title>
+    
+    <style>
+        /* --- قسم التصميم (CSS) --- */
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #4361ee, #4cc9f0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: var(--dark);
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        h2 { margin-bottom: 20px; color: var(--secondary); }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus { border-color: var(--primary); }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        button:hover { background-color: var(--secondary); }
+
+        .scrambled-box {
+            background: #f1f3f5;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 2.5rem;
+            letter-spacing: 8px;
+            color: var(--primary);
+            font-weight: 900;
+            text-shadow: 2px 2px #fff;
+        }
+
+        #message { height: 20px; font-weight: bold; margin: 10px 0; }
+        .success { color: #2ecc71; }
+        .error { color: var(--danger); }
+
+        #toggle-link {
+            color: var(--primary);
+            cursor: pointer;
+            display: block;
+            margin-top: 15px;
+            font-size: 14px;
+            text-decoration: underline;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .logout-btn { background: #6c757d; font-size: 12px; padding: 5px; width: auto; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div id="auth-ui">
+            <h2 id="auth-title">إنشاء حساب</h2>
+            <input type="text" id="user-input" placeholder="اسم المستخدم">
+            <input type="password" id="pass-input" placeholder="كلمة المرور">
+            <button onclick="handleAuth()" id="main-btn">سجل الآن</button>
+            <span id="toggle-link" onclick="toggleMode()">لديك حساب؟ سجل دخولك</span>
+        </div>
+
+        <div id="game-ui" style="display: none;">
+            <h2 id="welcome-msg">مرحباً!</h2>
+            <div class="scrambled-box" id="word-display">----</div>
+            <p>رتب الحروف لتكوين كلمة صحيحة</p>
+            <input type="text" id="guess-input" placeholder="أدخل الكلمة هنا...">
+            <button onclick="checkAnswer()">تأكيد الإجابة</button>
+            <div id="message"></div>
+            
+            <div class="stats">
+                <span>النقاط: <strong id="score-val">0</strong></span>
+                <button class="logout-btn" onclick="location.reload()">تسجيل خروج</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* --- قسم البرمجة (JavaScript) --- */
+        
+        let isLoginMode = false;
+        let currentWord = "";
+        let score = 0;
+        const wordList = ["برمجة", "موقع", "مطور", "سيرفر", "بيانات", "تقنية", "ذكاء", "حاسوب", "شاشة", "لوحة"];
+
+        // 1. إدارة تسجيل الدخول والإنشاء
+        function toggleMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').innerText = isLoginMode ? "تسجيل الدخول" : "إنشاء حساب";
+            document.getElementById('main-btn').innerText = isLoginMode ? "دخول" : "سجل الآن";
+            document.getElementById('toggle-link').innerText = isLoginMode ? "ليس لديك حساب؟ أنشئ واحداً" : "لديك حساب؟ سجل دخولك";
+        }
+
+        function handleAuth() {
+            const user = document.getElementById('user-input').value;
+            const pass = document.getElementById('pass-input').value;
+
+            if (user.length < 3 || pass.length < 3) {
+                alert("يرجى إدخال بيانات صحيحة (3 حروف على الأقل)");
+                return;
+            }
+
+            if (isLoginMode) {
+                const storedPass = localStorage.getItem(user);
+                if (storedPass === pass) {
+                    initGame(user);
+                } else {
+                    alert("خطأ في الاسم أو كلمة المرور!");
+                }
+            } else {
+                localStorage.setItem(user, pass);
+                alert("تم إنشاء الحساب بنجاح! يمكنك الآن الدخول.");
+                toggleMode();
+            }
+        }
+
+        // 2. إدارة اللعبة
+        function initGame(username) {
+            document.getElementById('auth-ui').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'block';
+            document.getElementById('welcome-msg').innerText = "أهلاً " + username;
+            generateWord();
+        }
+
+        function generateWord() {
+            currentWord = wordList[Math.floor(Math.random() * wordList.length)];
+            // تبعثر الكلمة
+            let scrambled = currentWord.split('').sort(() => Math.random() - 0.5).join('');
+            
+            // التأكد أن الكلمة المبعثرة ليست نفس الأصلية
+            if(scrambled === currentWord) return generateWord();
+            
+            document.getElementById('word-display').innerText = scrambled;
+            document.getElementById('guess-input').value = "";
+            document.getElementById('message').innerText = "";
+        }
+
+        function checkAnswer() {
+            const userGuess = document.getElementById('guess-input').value.trim();
+            const msgArea = document.getElementById('message');
+
+            if (userGuess === currentWord) {
+                score += 10;
+                document.getElementById('score-val').innerText = score;
+                msgArea.innerText = "أحسنت! إجابة صحيحة ✅";
+                msgArea.className = "success";
+                setTimeout(generateWord, 1500);
+            } else {
+                msgArea.innerText = "إجابة خاطئة، حاول ثانية ❌";
+                msgArea.className = "error";
+            }
+        }
+
+        // دعم الضغط على زر Enter للإدخال
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (document.getElementById('game-ui').style.display === 'block') {
+                    checkAnswer();
+                } else {
+                    handleAuth();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
