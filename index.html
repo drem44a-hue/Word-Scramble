@@ -2,186 +2,200 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>WORD SCRAMBLE v1000 - ULTIMATE HARD</title>
+    <title>نظام الكلمات المتكامل v1000</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #ffcf33; --neon: #00f2fe; --bg: #020202; --card: rgba(255,255,255,0.05); }
-        body { 
-            margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: white;
-            height: 100vh; display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
-        }
-        .app-card {
-            background: var(--card); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1);
-            padding: 40px; border-radius: 30px; width: 550px; text-align: center;
-            box-shadow: 0 0 100px rgba(0,0,0,1);
-        }
-        .difficulty-shifter {
-            display: flex; gap: 10px; justify-content: center; margin-bottom: 25px;
-        }
-        .diff-btn {
-            padding: 8px 15px; border-radius: 8px; border: 1px solid #444; background: transparent;
-            color: #aaa; cursor: pointer; transition: 0.3s; font-size: 13px;
-        }
-        .diff-btn.active { background: var(--neon); color: black; border-color: var(--neon); box-shadow: 0 0 15px var(--neon); }
+        :root { --neon: #00f2fe; --gold: #ffcf33; --bg: #050505; --glass: rgba(255, 255, 255, 0.05); }
+        body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: white; overflow-x: hidden; }
         
-        .word-box {
-            font-size: 4.5rem; font-weight: 900; color: var(--gold); letter-spacing: 12px;
-            margin: 20px 0; text-shadow: 0 0 30px rgba(255, 207, 51, 0.3); user-select: none;
-        }
-        input {
-            width: 100%; padding: 18px; border-radius: 12px; border: 1px solid #333;
-            background: rgba(0,0,0,0.8); color: white; font-size: 1.5rem; text-align: center;
-            margin-bottom: 20px; outline: none; transition: 0.3s;
-        }
-        input:focus { border-color: var(--neon); }
-        
-        .btn-main {
-            width: 100%; padding: 18px; border-radius: 12px; border: none;
-            background: linear-gradient(90deg, #ffcf33, #ffae00); color: black;
-            font-weight: 900; font-size: 1.2rem; cursor: pointer; transition: 0.4s;
-        }
-        .btn-main:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(255,207,51,0.4); }
+        /* شريط التنقل العلوي */
+        .navbar { background: rgba(0,0,0,0.9); padding: 15px; display: flex; justify-content: center; gap: 15px; border-bottom: 2px solid var(--gold); position: sticky; top: 0; z-index: 1000; }
+        .nav-btn { background: var(--glass); border: 1px solid #444; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .nav-btn.active { background: var(--neon); color: black; border-color: var(--neon); }
 
-        .leaderboard { margin-top: 30px; text-align: right; font-size: 0.9rem; }
-        .row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .hidden { display: none !important; }
-        .dev-badge { background: #ff4b2b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 5px; }
+        .container { max-width: 800px; margin: 40px auto; padding: 20px; text-align: center; }
+        .card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); padding: 30px; border-radius: 20px; }
+        
+        input { padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; text-align: center; margin: 10px; width: 80%; max-width: 300px; }
+        .btn-main { background: var(--gold); color: black; padding: 12px 30px; border: none; border-radius: 8px; font-weight: 900; cursor: pointer; font-size: 1.1rem; }
+        
+        .word-display { font-size: 3.5rem; color: var(--gold); letter-spacing: 12px; margin: 30px 0; text-shadow: 0 0 20px rgba(255,207,51,0.4); }
+        .stats { display: flex; justify-content: space-around; margin-bottom: 20px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; color: var(--neon); font-weight: bold; }
+        
+        .hidden { display: none; }
+        .item-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .item { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid #333; }
     </style>
 </head>
 <body>
 
-<div class="app-card" id="auth-box">
-    <h1 style="color:var(--gold)">لعبه تخمين الكلمات</h1>
-    <input type="text" id="u-in" placeholder="اسم المستخدم">
-    <input type="password" id="p-in" placeholder="كلمة المرور">
-    <button class="btn-main" onclick="processAuth()">تسجيل الدخول</button>
-    <p style="font-size: 12px; cursor:pointer; margin-top:15px; color:#777" onclick="switchAuth()">ليس لديك ملف؟ أنشئ واحداً</p>
-</div>
+    <nav class="navbar">
+        <button class="nav-btn active" onclick="showTab('solo')">👤 لعب فردي</button>
+        <button class="nav-btn" onclick="showTab('multi')">⚔️ أونلاين</button>
+        <button class="nav-btn" onclick="showTab('store')">🛒 المتجر</button>
+    </nav>
 
-<div class="app-card hidden" id="game-box">
-    <div class="difficulty-shifter">
-        <button class="diff-btn active" onclick="setDiff('easy', this)">سهل</button>
-        <button class="diff-btn" onclick="setDiff('medium', this)">متوسط</button>
-        <button class="diff-btn" onclick="setDiff('hard', this)">صعب</button>
-        <button class="diff-btn" onclick="setDiff('insane', this)">مستحيل</button>
+    <div class="container">
+        <div class="stats">
+            <span>اللاعب: <span id="ui-name">زائر</span></span>
+            <span>الرصيد: <span id="ui-xp">0</span> XP</span>
+        </div>
+
+        <div id="tab-solo" class="tab-content card">
+            <h2>التحدي الفردي</h2>
+            <div class="word-display" id="solo-word">----</div>
+            <input type="text" id="solo-input" placeholder="اكتب الحل...">
+            <br>
+            <button class="btn-main" onclick="checkSolo()">تحقق</button>
+        </div>
+
+        <div id="tab-multi" class="tab-content card hidden">
+            <h2>تحدي الأصدقاء (Online)</h2>
+            <div id="multi-setup">
+                <input type="text" id="player-name" placeholder="اسمك">
+                <input type="text" id="room-code" placeholder="كود الغرفة (مثلاً 123)">
+                <br>
+                <button class="btn-main" onclick="initMulti()">دخول الغرفة</button>
+            </div>
+            <div id="multi-game" class="hidden">
+                <p style="color: #888;">أنت في غرفة: <b id="room-id-view" style="color:var(--neon)"></b></p>
+                <div id="opponents" style="margin-bottom: 10px; font-size: 0.9rem;"></div>
+                <div class="word-display" id="multi-word">----</div>
+                <input type="text" id="multi-input" placeholder="سابق صديقك في الحل!">
+                <br>
+                <button class="btn-main" onclick="checkMulti()">إرسال</button>
+            </div>
+        </div>
+
+        <div id="tab-store" class="tab-content card hidden">
+            <h2>متجر الترقيات</h2>
+            <div class="item-grid">
+                <div class="item">
+                    <h3>🔍 كاشف الحروف</h3>
+                    <p>500 XP</p>
+                    <button onclick="buy(500, 'كاشف')">شراء</button>
+                </div>
+                <div class="item">
+                    <h3>🚀 مضاعف النقاط</h3>
+                    <p>1200 XP</p>
+                    <button onclick="buy(1200, 'مضاعف')">شراء</button>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div style="display:flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
-        <span id="display-name"></span>
-        <span style="color:var(--neon)">XP: <span id="xp-val">0</span>/1000</span>
-    </div>
-
-    <div class="word-box" id="scrambled-target">----</div>
-    <input type="text" id="user-ans" placeholder="خمن الاسم..." autocomplete="off">
-    <button class="btn-main" onclick="verifyGuess()">تحقق من التسلسل</button>
-
-    <div class="leaderboard">
-        <h4 style="color:var(--gold); border-bottom: 1px solid #333; padding-bottom: 5px;">🏆 قائمة النخبة</h4>
-        <div id="lb-data"></div>
-    </div>
-</div>
 
 <script>
-    // الحماية والتشفير
-    const _DEV = btoa("team");
-    let isReg = false;
-    let currentXP = 0;
-    let activeWord = "";
-    let difficulty = 'easy';
-    let sessionUser = "";
+    // --- الإعدادات والربط ---
+    const DB_URL = "https://your-firebase-id.firebaseio.com/system"; // 👈 ضع رابطك هنا
+    let myData = { name: "زائر", xp: 0, inventory: [] };
+    let soloTarget = "";
+    let multiTarget = "";
+    let currentRoom = "";
 
-    const dictionary = {
-        easy: ["تفاح", "موز", "كتاب", "قلم", "شمس", "بحر", "بيت", "نجم"],
-        medium: ["برمجة", "حاسوب", "شاشة", "موقع", "بيانات", "مستقبل", "تقنية"],
-        hard: ["خوارزمية", "استراتيجية", "بيروقراطية", "ديمقراطية", "ميتافيزيقيا"],
-        insane: ["أنثروبولوجيا", "سوسيولوجيا", "إمبريالية", "ببليوغرافيا", "أيديولوجيا"]
-    };
-
-    function setDiff(level, btn) {
-        difficulty = level;
-        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        generateNew();
+    // --- نظام التنقل ---
+    function showTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.getElementById('tab-' + tabId).classList.remove('hidden');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
     }
 
-    function switchAuth() {
-        isReg = !isReg;
-        document.querySelector('#auth-box h1').innerText = isReg ? "إنشاء حساب جديد" : "تخمين الكلمات";
+    // --- اللعب الفردي ---
+    function nextSolo() {
+        const words = ["تقنية", "حاسوب", "مستقبل", "ذكاء", "تطوير"];
+        soloTarget = words[Math.floor(Math.random()*words.length)];
+        let scram = soloTarget.split('').sort(()=>Math.random()-0.5).join('');
+        document.getElementById('solo-word').innerText = scram;
     }
 
-    function processAuth() {
-        const u = document.getElementById('u-in').value;
-        const p = document.getElementById('p-in').value;
-
-        if (btoa(u) === _DEV && btoa(p) === _DEV) {
-            initGame(u, true);
-        } else if (isReg) {
-            localStorage.setItem("vx_" + btoa(u), btoa(p));
-            alert(" تم حفظ حسابك."); switchAuth();
-        } else {
-            if (localStorage.getItem("vx_" + btoa(u)) === btoa(p)) {
-                initGame(u, false);
-            } else { alert("خطأ في بيانات الدخول!"); }
+    function checkSolo() {
+        const val = document.getElementById('solo-input').value;
+        if(val === soloTarget) {
+            myData.xp += 100;
+            updateUI();
+            alert("صح! +100 نقطة");
+            nextSolo();
+            document.getElementById('solo-input').value = "";
         }
     }
 
-    function initGame(u, dev) {
-        sessionUser = u;
-        document.getElementById('auth-box').classList.add('hidden');
-        document.getElementById('game-box').classList.remove('hidden');
-        document.getElementById('display-name').innerHTML = dev ? `<span class="dev-badge">DEV</span> ${u}` : u;
-        updateRankings();
-        generateNew();
+    // --- نظام الأونلاين (المزامنة مع الصديق) ---
+    async function initMulti() {
+        myData.name = document.getElementById('player-name').value;
+        currentRoom = document.getElementById('room-code').value;
+        if(!myData.name || !currentRoom) return alert("أكمل البيانات");
+
+        document.getElementById('multi-setup').classList.add('hidden');
+        document.getElementById('multi-game').classList.remove('hidden');
+        document.getElementById('room-id-view').innerText = currentRoom;
+        document.getElementById('ui-name').innerText = myData.name;
+
+        // إضافة اسمي للغرفة في السيرفر
+        await fetch(`${DB_URL}/rooms/${currentRoom}/players/${myData.name}.json`, {
+            method: 'PUT', body: JSON.stringify({ score: 0 })
+        });
+
+        setInterval(syncMulti, 2000); // تحديث كل ثانيتين
     }
 
-    function generateNew() {
-        const list = dictionary[difficulty];
-        activeWord = list[Math.floor(Math.random() * list.length)];
-        let scrambled = activeWord.split('').sort(() => Math.random() - 0.5).join('');
-        if(scrambled === activeWord) return generateNew();
-        document.getElementById('scrambled-target').innerText = scrambled;
-        document.getElementById('user-ans').value = "";
-    }
+    async function syncMulti() {
+        const res = await fetch(`${DB_URL}/rooms/${currentRoom}.json`);
+        const data = await res.json();
+        if(!data) return;
 
-    function verifyGuess() {
-        const guess = document.getElementById('user-ans').value.trim();
-        if (guess === activeWord) {
-            // نقاط الصعوبة
-            let points = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 30 : difficulty === 'hard' ? 60 : 150;
-            currentXP += points;
-            document.getElementById('xp-val').innerText = currentXP;
-            saveStats();
-            if (currentXP >= 1000) { alert("مبروك! لقد سحقت النظام."); location.reload(); }
-            else generateNew();
+        // تحديث الكلمة عند الجميع
+        if(data.word) {
+            multiTarget = data.word;
+            document.getElementById('multi-word').innerText = data.scrambled;
         } else {
-            alert("فشل في تخمين الكلمه!");
+            generateRoomWord();
+        }
+
+        // تحديث قائمة اللاعبين
+        let playersHtml = "";
+        for(let p in data.players) {
+            playersHtml += ` [ ${p}: ${data.players[p].score} ] `;
+        }
+        document.getElementById('opponents').innerHTML = playersHtml;
+    }
+
+    async function generateRoomWord() {
+        const list = ["برمجة", "تشفير", "سيرفر", "اختراق"];
+        const word = list[Math.floor(Math.random()*list.length)];
+        const sc = word.split('').sort(()=>Math.random()-0.5).join('');
+        await fetch(`${DB_URL}/rooms/${currentRoom}.json`, {
+            method: 'PATCH', body: JSON.stringify({ word: word, scrambled: sc })
+        });
+    }
+
+    async function checkMulti() {
+        const val = document.getElementById('multi-input').value;
+        if(val === multiTarget) {
+            alert("أنت الأسرع! حصلت على النقاط");
+            // مسح الكلمة لتتغير عند الجميع
+            await fetch(`${DB_URL}/rooms/${currentRoom}/word.json`, { method: 'DELETE' });
+            myData.xp += 200;
+            updateUI();
         }
     }
 
-    function saveStats() {
-        let lb = JSON.parse(localStorage.getItem('luxury_v1000_lb')) || [];
-        let idx = lb.findIndex(x => x.n === sessionUser);
-        if (idx > -1) { if(currentXP > lb[idx].s) lb[idx].s = currentXP; }
-        else lb.push({n: sessionUser, s: currentXP});
-        lb.sort((a,b) => b.s - a.s);
-        localStorage.setItem('luxury_v1000_lb', JSON.stringify(lb.slice(0, 5)));
-        updateRankings();
+    // --- المتجر والتحديث ---
+    function updateUI() {
+        document.getElementById('ui-xp').innerText = myData.xp;
+        localStorage.setItem('my_save', JSON.stringify(myData));
     }
 
-    function updateRankings() {
-        let lb = JSON.parse(localStorage.getItem('luxury_v1000_lb')) || [];
-        document.getElementById('lb-data').innerHTML = lb.map((p, i) => `
-            <div class="row"><span>${i+1}. ${p.n}</span><span style="color:var(--neon)">${p.s} XP</span></div>
-        `).join('');
+    function buy(price, name) {
+        if(myData.xp >= price) {
+            myData.xp -= price;
+            myData.inventory.push(name);
+            updateUI();
+            alert("تم شراء " + name);
+        } else { alert("رصيدك ناقص!"); }
     }
 
-    // نظام حماية متقدم
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    window.addEventListener('keydown', e => {
-        if(e.key === 'Enter') verifyGuess();
-        if(e.ctrlKey && (e.key === 'i' || e.key === 'j' || e.key === 'u')) e.preventDefault();
-    });
+    // تشغيل اللعبة عند الفتح
+    nextSolo();
 </script>
 </body>
 </html>
