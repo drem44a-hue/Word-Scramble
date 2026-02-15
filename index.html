@@ -2,209 +2,185 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WORD SCRAMBLE LUXURY v1000</title>
+    <title>WORD SCRAMBLE v1000 - ULTIMATE HARD</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --gold: #ffcf33; --accent: #00f2fe; --bg: #03001e;
-            --glass: rgba(255, 255, 255, 0.05);
+        :root { --gold: #ffcf33; --neon: #00f2fe; --bg: #020202; --card: rgba(255,255,255,0.05); }
+        body { 
+            margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: white;
+            height: 100vh; display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
         }
-
-        body {
-            margin: 0; font-family: 'Cairo', sans-serif;
-            background: linear-gradient(to bottom, #03001e, #7303c0, #03001e);
-            color: white; height: 100vh; overflow: hidden;
-            display: flex; align-items: center; justify-content: center;
+        .app-card {
+            background: var(--card); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1);
+            padding: 40px; border-radius: 30px; width: 550px; text-align: center;
+            box-shadow: 0 0 100px rgba(0,0,0,1);
         }
-
-        /* واجهة الزجاج الاحترافية */
-        .glass-card {
-            background: var(--glass); backdrop-filter: blur(15px);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 40px; border-radius: 25px; width: 450px;
-            text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        .difficulty-shifter {
+            display: flex; gap: 10px; justify-content: center; margin-bottom: 25px;
         }
-
+        .diff-btn {
+            padding: 8px 15px; border-radius: 8px; border: 1px solid #444; background: transparent;
+            color: #aaa; cursor: pointer; transition: 0.3s; font-size: 13px;
+        }
+        .diff-btn.active { background: var(--neon); color: black; border-color: var(--neon); box-shadow: 0 0 15px var(--neon); }
+        
         .word-box {
-            font-size: 3.5rem; font-weight: 900; letter-spacing: 15px;
-            margin: 20px 0; color: var(--accent); text-shadow: 0 0 20px var(--accent);
-            animation: glow 2s infinite alternate;
+            font-size: 4.5rem; font-weight: 900; color: var(--gold); letter-spacing: 12px;
+            margin: 20px 0; text-shadow: 0 0 30px rgba(255, 207, 51, 0.3); user-select: none;
         }
-
-        @keyframes glow { from { opacity: 0.8; } to { opacity: 1; text-shadow: 0 0 30px var(--accent); } }
-
         input {
-            width: 100%; padding: 15px; border-radius: 12px; border: none;
-            background: rgba(255,255,255,0.1); color: white;
-            font-size: 1.2rem; margin: 15px 0; outline: none; transition: 0.3s;
+            width: 100%; padding: 18px; border-radius: 12px; border: 1px solid #333;
+            background: rgba(0,0,0,0.8); color: white; font-size: 1.5rem; text-align: center;
+            margin-bottom: 20px; outline: none; transition: 0.3s;
         }
-
-        input:focus { background: rgba(255,255,255,0.2); box-shadow: 0 0 15px var(--accent); }
-
-        button {
-            width: 100%; padding: 15px; border-radius: 12px; border: none;
-            background: linear-gradient(45deg, var(--accent), #4facfe);
-            color: #03001e; font-weight: bold; cursor: pointer;
-            font-size: 1.1rem; transition: 0.3s;
+        input:focus { border-color: var(--neon); }
+        
+        .btn-main {
+            width: 100%; padding: 18px; border-radius: 12px; border: none;
+            background: linear-gradient(90deg, #ffcf33, #ffae00); color: black;
+            font-weight: 900; font-size: 1.2rem; cursor: pointer; transition: 0.4s;
         }
+        .btn-main:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(255,207,51,0.4); }
 
-        button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,242,254,0.4); }
-
-        .leaderboard-table {
-            margin-top: 25px; width: 100%; border-collapse: collapse; font-size: 0.9rem;
-        }
-
-        .leaderboard-table th { color: var(--gold); border-bottom: 1px solid var(--gold); padding: 10px; }
-        .leaderboard-table td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-
-        .win-screen {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
-        }
-
-        .badge { background: var(--gold); color: black; padding: 2px 10px; border-radius: 5px; font-size: 10px; vertical-align: middle; }
+        .leaderboard { margin-top: 30px; text-align: right; font-size: 0.9rem; }
+        .row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .hidden { display: none !important; }
+        .dev-badge { background: #ff4b2b; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-right: 5px; }
     </style>
 </head>
 <body>
 
-<audio id="sound-correct" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio>
-<audio id="sound-error" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
-<audio id="sound-win" src="https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3"></audio>
-
-<div id="win-overlay" class="win-screen">
-    <h1 style="color:var(--gold); font-size: 4rem;">🏆 أسطورة الكلمات 🏆</h1>
-    <p>لقد سحقت نظام الـ v1000 بنجاح!</p>
-    <button onclick="location.reload()" style="width: 250px;">إعادة تعيين النظام</button>
+<div class="app-card" id="auth-box">
+    <h1 style="color:var(--gold)">نظام التشفير العالمي</h1>
+    <input type="text" id="u-in" placeholder="اسم المستخدم">
+    <input type="password" id="p-in" placeholder="كلمة المرور">
+    <button class="btn-main" onclick="processAuth()">تسجيل الدخول</button>
+    <p style="font-size: 12px; cursor:pointer; margin-top:15px; color:#777" onclick="switchAuth()">ليس لديك ملف؟ أنشئ واحداً</p>
 </div>
 
-<div class="glass-card" id="auth-ui">
-    <h1 style="margin-top:0; color:var(--accent)">ENTRY ACCESS</h1>
-    <input type="text" id="user-in" placeholder="اسم المستخدم">
-    <input type="password" id="pass-in" placeholder="كلمة المرور">
-    <button onclick="authHandler()">EXECUTE</button>
-    <p id="toggle-mode" style="cursor:pointer; font-size: 13px; margin-top:15px" onclick="toggleAuth()">ليس لديك حساب؟ أنشئ حساباً</p>
-</div>
-
-<div class="glass-card hidden" id="game-ui">
-    <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <span id="player-name" style="color:var(--gold)"></span>
-        <span>XP: <b id="xp-display">0</b>/1000</span>
+<div class="app-card hidden" id="game-box">
+    <div class="difficulty-shifter">
+        <button class="diff-btn active" onclick="setDiff('easy', this)">سهل</button>
+        <button class="diff-btn" onclick="setDiff('medium', this)">متوسط</button>
+        <button class="diff-btn" onclick="setDiff('hard', this)">صعب</button>
+        <button class="diff-btn" onclick="setDiff('insane', this)">مستحيل</button>
     </div>
-    
-    <div class="word-box" id="scrambled-txt">----</div>
-    <input type="text" id="game-input" placeholder="رتب الحروف هنا..." autocomplete="off">
-    <button onclick="processGuess()">تأكيد العملية</button>
 
-    <table class="leaderboard-table">
-        <thead>
-            <tr><th>الترتيب</th><th>اللاعب</th><th>النقاط</th></tr>
-        </thead>
-        <tbody id="lb-rows"></tbody>
-    </table>
+    <div style="display:flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
+        <span id="display-name"></span>
+        <span style="color:var(--neon)">XP: <span id="xp-val">0</span>/1000</span>
+    </div>
+
+    <div class="word-box" id="scrambled-target">----</div>
+    <input type="text" id="user-ans" placeholder="فك الشفرة..." autocomplete="off">
+    <button class="btn-main" onclick="verifyGuess()">تحقق من التسلسل</button>
+
+    <div class="leaderboard">
+        <h4 style="color:var(--gold); border-bottom: 1px solid #333; padding-bottom: 5px;">🏆 قائمة النخبة</h4>
+        <div id="lb-data"></div>
+    </div>
 </div>
 
 <script>
     // الحماية والتشفير
-    const _DV = btoa("team");
-    let isRegMode = false;
-    let score = 0;
-    let currentTarget = "";
-    
-    // قاموس الـ 1000 كلمة (قائمة ذكية يتم توليدها)
-    const baseWords = ["خوارزميات", "هندسة", "تشفير", "سيبراني", "تحليل", "بيانات", "مستقبل", "ذكاء", "صناعي", "اختراق", "حماية", "شبكات", "تطبيقات", "منصة", "تفاعل", "برمجة", "سيرفر", "منطق", "تصميم", "ابتكار"];
-    // ملاحظة: يمكنك حشو المصفوفة بـ 1000 كلمة بكل سهولة هنا.
+    const _DEV = btoa("team");
+    let isReg = false;
+    let currentXP = 0;
+    let activeWord = "";
+    let difficulty = 'easy';
+    let sessionUser = "";
 
-    function toggleAuth() {
-        isRegMode = !isRegMode;
-        document.getElementById('auth-ui').querySelector('h1').innerText = isRegMode ? "NEW ACCOUNT" : "ENTRY ACCESS";
-        document.getElementById('toggle-mode').innerText = isRegMode ? "لديك حساب؟ سجل دخولك" : "ليس لديك حساب؟ أنشئ حساباً";
+    const dictionary = {
+        easy: ["تفاح", "موز", "كتاب", "قلم", "شمس", "بحر", "بيت", "نجم"],
+        medium: ["برمجة", "حاسوب", "شاشة", "موقع", "بيانات", "مستقبل", "تقنية"],
+        hard: ["خوارزمية", "استراتيجية", "بيروقراطية", "ديمقراطية", "ميتافيزيقيا"],
+        insane: ["أنثروبولوجيا", "سوسيولوجيا", "إمبريالية", "ببليوغرافيا", "أيديولوجيا"]
+    };
+
+    function setDiff(level, btn) {
+        difficulty = level;
+        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        generateNew();
     }
 
-    function authHandler() {
-        const u = document.getElementById('user-in').value;
-        const p = document.getElementById('pass-in').value;
+    function switchAuth() {
+        isReg = !isReg;
+        document.querySelector('#auth-box h1').innerText = isReg ? "إنشاء ملف جديد" : "نظام التشفير العالمي";
+    }
 
-        if (btoa(u) === _DV && btoa(p) === _DV) {
-            startSystem(u + " <span class='badge'>DEV</span>");
-        } else if (isRegMode) {
-            localStorage.setItem("user_" + btoa(u), btoa(p));
-            alert("SUCCESS: Account Initialized");
-            toggleAuth();
+    function processAuth() {
+        const u = document.getElementById('u-in').value;
+        const p = document.getElementById('p-in').value;
+
+        if (btoa(u) === _DEV && btoa(p) === _DEV) {
+            initGame(u, true);
+        } else if (isReg) {
+            localStorage.setItem("vx_" + btoa(u), btoa(p));
+            alert("تم تشفير وحفظ حسابك."); switchAuth();
         } else {
-            if (localStorage.getItem("user_" + btoa(u)) === btoa(p)) {
-                startSystem(u);
-            } else {
-                playSound('sound-error');
-                alert("ACCESS DENIED: Credentials Mismatch");
-            }
+            if (localStorage.getItem("vx_" + btoa(u)) === btoa(p)) {
+                initGame(u, false);
+            } else { alert("خطأ في بيانات الدخول!"); }
         }
     }
 
-    function startSystem(name) {
-        document.getElementById('auth-ui').classList.add('hidden');
-        document.getElementById('game-ui').classList.remove('hidden');
-        document.getElementById('player-name').innerHTML = name;
-        refreshLB();
-        loadNextWord();
+    function initGame(u, dev) {
+        sessionUser = u;
+        document.getElementById('auth-box').classList.add('hidden');
+        document.getElementById('game-box').classList.remove('hidden');
+        document.getElementById('display-name').innerHTML = dev ? `<span class="dev-badge">DEV</span> ${u}` : u;
+        updateRankings();
+        generateNew();
     }
 
-    function loadNextWord() {
-        currentTarget = baseWords[Math.floor(Math.random() * baseWords.length)];
-        let scrambled = currentTarget.split('').sort(() => Math.random() - 0.5).join('');
-        document.getElementById('scrambled-txt').innerText = scrambled;
-        document.getElementById('game-input').value = "";
+    function generateNew() {
+        const list = dictionary[difficulty];
+        activeWord = list[Math.floor(Math.random() * list.length)];
+        let scrambled = activeWord.split('').sort(() => Math.random() - 0.5).join('');
+        if(scrambled === activeWord) return generateNew();
+        document.getElementById('scrambled-target').innerText = scrambled;
+        document.getElementById('user-ans').value = "";
     }
 
-    function processGuess() {
-        const guess = document.getElementById('game-input').value.trim();
-        if (guess === currentTarget) {
-            playSound('sound-correct');
-            score += 100;
-            document.getElementById('xp-display').innerText = score;
-            saveScore();
-            if (score >= 1000) {
-                playSound('sound-win');
-                document.getElementById('win-overlay').style.display = 'flex';
-            } else {
-                loadNextWord();
-            }
+    function verifyGuess() {
+        const guess = document.getElementById('user-ans').value.trim();
+        if (guess === activeWord) {
+            // نقاط الصعوبة
+            let points = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 30 : difficulty === 'hard' ? 60 : 150;
+            currentXP += points;
+            document.getElementById('xp-val').innerText = currentXP;
+            saveStats();
+            if (currentXP >= 1000) { alert("مبروك! لقد سحقت النظام."); location.reload(); }
+            else generateNew();
         } else {
-            playSound('sound-error');
-            alert("ERROR: Sequence Invalid");
+            alert("فشل في فك الشفرة!");
         }
     }
 
-    function playSound(id) {
-        const s = document.getElementById(id);
-        s.currentTime = 0;
-        s.play();
-    }
-
-    function saveScore() {
-        let name = document.getElementById('player-name').innerText.split(" ")[0];
-        let lb = JSON.parse(localStorage.getItem('luxury_lb')) || [];
-        let idx = lb.findIndex(x => x.n === name);
-        if (idx > -1) { if(score > lb[idx].s) lb[idx].s = score; }
-        else { lb.push({n: name, s: score}); }
+    function saveStats() {
+        let lb = JSON.parse(localStorage.getItem('luxury_v1000_lb')) || [];
+        let idx = lb.findIndex(x => x.n === sessionUser);
+        if (idx > -1) { if(currentXP > lb[idx].s) lb[idx].s = currentXP; }
+        else lb.push({n: sessionUser, s: currentXP});
         lb.sort((a,b) => b.s - a.s);
-        localStorage.setItem('luxury_lb', JSON.stringify(lb.slice(0, 5)));
-        refreshLB();
+        localStorage.setItem('luxury_v1000_lb', JSON.stringify(lb.slice(0, 5)));
+        updateRankings();
     }
 
-    function refreshLB() {
-        let lb = JSON.parse(localStorage.getItem('luxury_lb')) || [];
-        const tbody = document.getElementById('lb-rows');
-        tbody.innerHTML = lb.map((p, i) => `
-            <tr><td>${i+1}</td><td>${p.n}</td><td style="color:var(--accent)">${p.s}</td></tr>
+    function updateRankings() {
+        let lb = JSON.parse(localStorage.getItem('luxury_v1000_lb')) || [];
+        document.getElementById('lb-data').innerHTML = lb.map((p, i) => `
+            <div class="row"><span>${i+1}. ${p.n}</span><span style="color:var(--neon)">${p.s} XP</span></div>
         `).join('');
     }
 
-    // تعطيل الاختصارات للحماية
+    // نظام حماية متقدم
+    document.addEventListener('contextmenu', e => e.preventDefault());
     window.addEventListener('keydown', e => {
-        if(e.ctrlKey && (e.key === 'u' || e.key === 's' || e.key === 'i')) e.preventDefault();
-        if(e.key === 'Enter') processGuess();
+        if(e.key === 'Enter') verifyGuess();
+        if(e.ctrlKey && (e.key === 'i' || e.key === 'j' || e.key === 'u')) e.preventDefault();
     });
 </script>
 </body>
