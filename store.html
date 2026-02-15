@@ -1,1 +1,131 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>CYBER STORE v1000 - THE UPGRADE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #ffcf33; --neon: #00f2fe; --bg: #050505; --glass: rgba(255, 255, 255, 0.05); }
+        body { 
+            margin: 0; font-family: 'Cairo', sans-serif; background: #050505; color: white;
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px;
+            background-image: radial-gradient(circle at top, #1a1a2e 0%, #050505 100%);
+        }
 
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { color: var(--gold); font-size: 3rem; text-shadow: 0 0 20px rgba(255, 207, 51, 0.4); margin: 0; }
+        .wallet-info { background: var(--glass); padding: 10px 30px; border-radius: 50px; border: 1px solid var(--neon); color: var(--neon); font-weight: 900; margin-top: 15px; display: inline-block; }
+
+        .store-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px; width: 100%; max-width: 1000px;
+        }
+
+        .item-card {
+            background: var(--glass); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+            padding: 25px; border-radius: 20px; text-align: center; transition: 0.3s; position: relative; overflow: hidden;
+        }
+
+        .item-card:hover { transform: translateY(-10px); border-color: var(--gold); box-shadow: 0 10px 30px rgba(255, 207, 51, 0.2); }
+
+        .item-icon { font-size: 3rem; margin-bottom: 15px; display: block; }
+        .item-name { font-size: 1.4rem; font-weight: 900; color: var(--neon); }
+        .item-desc { font-size: 0.9rem; color: #aaa; margin: 10px 0 20px; height: 40px; }
+        
+        .price-tag { font-size: 1.2rem; font-weight: bold; color: var(--gold); margin-bottom: 15px; display: block; }
+        
+        .buy-btn {
+            width: 100%; padding: 12px; border-radius: 10px; border: none;
+            background: linear-gradient(45deg, var(--neon), #4facfe); color: #000;
+            font-weight: 900; cursor: pointer; transition: 0.3s;
+        }
+
+        .buy-btn:disabled { background: #333; color: #777; cursor: not-allowed; }
+        
+        .inventory {
+            margin-top: 50px; width: 100%; max-width: 1000px;
+            background: rgba(0,0,0,0.5); padding: 20px; border-radius: 15px; border-top: 2px solid var(--gold);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>متجر التجهيزات v1000</h1>
+        <div class="wallet-info">رصيدك: <span id="balance">5000</span> XP</div>
+    </div>
+
+    <div class="store-grid" id="store-items">
+        </div>
+
+    <div class="inventory">
+        <h3 style="color: var(--gold); margin-top: 0;">📦 حقيبة الممتلكات (Inventory)</h3>
+        <div id="my-items" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <span style="color: #666;">الحقيبة فارغة حالياً...</span>
+        </div>
+    </div>
+
+    <script>
+        // نظام إدارة الأموال والمشتريات
+        let xpBalance = parseInt(localStorage.getItem('luxury_xp')) || 5000; // نفترض أن معه 5000 كبداية
+        let myInventory = JSON.parse(localStorage.getItem('user_inventory')) || [];
+
+        const products = [
+            { id: 1, name: "كاشف الثغرات", icon: "🔍", price: 800, desc: "يكشف لك الحرف الأول والأخير من الكلمة المبعثرة." },
+            { id: 2, name: "تجميد النظام", icon: "❄️", price: 1500, desc: "يوقف عداد الوقت لمدة 15 ثانية في التحديات الصعبة." },
+            { id: 3, name: "مضاعف النقاط", icon: "🚀", price: 3000, desc: "تحصل على ضعف النقاط (2x) لكل إجابة صحيحة." },
+            { id: 4, name: "الهوية المخفية", icon: "🎭", price: 5000, desc: "يغير لون اسمك للون الذهبي في قائمة المتصدرين." },
+            { id: 5, name: "الحماية القصوى", icon: "🛡️", price: 10000, desc: "درع يحميك من خسارة النقاط عند ارتكاب الأخطاء." }
+        ];
+
+        function renderStore() {
+            const container = document.getElementById('store-items');
+            document.getElementById('balance').innerText = xpBalance;
+            
+            container.innerHTML = products.map(item => `
+                <div class="item-card">
+                    <span class="item-icon">${item.icon}</span>
+                    <span class="item-name">${item.name}</span>
+                    <p class="item-desc">${item.desc}</p>
+                    <span class="price-tag">${item.price} XP</span>
+                    <button class="buy-btn" onclick="buyItem(${item.id})" 
+                        ${xpBalance < item.price ? 'disabled' : ''}>
+                        شراء الآن
+                    </button>
+                </div>
+            `).join('');
+            
+            renderInventory();
+        }
+
+        function buyItem(id) {
+            const item = products.find(p => p.id === id);
+            if (xpBalance >= item.price) {
+                xpBalance -= item.price;
+                myInventory.push(item.name);
+                
+                // حفظ البيانات
+                localStorage.setItem('luxury_xp', xpBalance);
+                localStorage.setItem('user_inventory', JSON.stringify(myInventory));
+                
+                alert(`🎉 تم شراء ${item.name} بنجاح!`);
+                renderStore();
+            }
+        }
+
+        function renderInventory() {
+            const invContainer = document.getElementById('my-items');
+            if (myInventory.length > 0) {
+                invContainer.innerHTML = myInventory.map(name => `
+                    <span style="background:var(--neon); color:black; padding:5px 15px; border-radius:5px; font-weight:bold; font-size:12px;">
+                        ${name}
+                    </span>
+                `).join('');
+            }
+        }
+
+        // تشغيل المتجر
+        renderStore();
+    </script>
+</body>
+</html>
