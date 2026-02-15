@@ -1,1 +1,111 @@
-ط
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>نظام إدارة ملفات اللاعبين | Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --danger: #ff4b2b; --success: #00ff41; --primary: #1a1a2e; }
+        body { font-family: 'Cairo', sans-serif; background: #0a0a0a; color: white; padding: 40px; }
+        
+        .header { border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .refresh-btn { background: var(--success); color: black; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+        .files-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        
+        /* تصميم ملف اللاعب كأنه ملف حقيقي */
+        .player-file { 
+            background: #16213e; border: 1px solid #333; border-radius: 10px; padding: 20px; 
+            position: relative; transition: 0.3s; 
+        }
+        .player-file:hover { border-color: var(--success); box-shadow: 0 0 15px rgba(0,255,65,0.1); }
+        
+        .file-icon { font-size: 40px; margin-bottom: 10px; display: block; }
+        .player-name { font-size: 1.5rem; font-weight: bold; color: var(--success); display: block; margin-bottom: 10px; }
+        
+        .data-line { font-family: 'Courier New', monospace; background: #000; padding: 10px; border-radius: 5px; font-size: 13px; margin: 5px 0; overflow: hidden; }
+        .data-label { color: #888; }
+        
+        .controls { margin-top: 15px; display: flex; gap: 10px; }
+        .delete-btn { background: var(--danger); border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>📁 نظام إدارة ملفات السيرفر</h1>
+        <button class="refresh-btn" onclick="loadAllFiles()">تحديث البيانات 🔄</button>
+    </div>
+
+    <div id="status-msg" style="margin-bottom: 20px; color: #888;">جاري الاتصال بالسيرفر...</div>
+
+    <div class="files-grid" id="files-container">
+        </div>
+
+    <script>
+        // رابط قاعدة بياناتك (نفس الرابط المستخدم في اللعبة)
+        const DB_URL = "https://your-firebase-id.firebaseio.com/players";
+
+        async function loadAllFiles() {
+            const container = document.getElementById('files-container');
+            const status = document.getElementById('status-msg');
+            
+            try {
+                const response = await fetch(`${DB_URL}.json`);
+                const allPlayers = await response.json();
+
+                if (!allPlayers) {
+                    container.innerHTML = "<h3>لا توجد ملفات حالياً في السيرفر.</h3>";
+                    return;
+                }
+
+                container.innerHTML = ""; // مسح الحاوية
+                status.innerText = `تم العثور على (${Object.keys(allPlayers).length}) ملفات لاعبين.`;
+
+                for (let username in allPlayers) {
+                    const data = allPlayers[username];
+                    createFileCard(username, data);
+                }
+            } catch (error) {
+                status.innerText = "فشل الاتصال! تأكد من رابط Firebase وقواعد القراءة.";
+            }
+        }
+
+        function createFileCard(name, data) {
+            const container = document.getElementById('files-container');
+            const card = document.createElement('div');
+            card.className = 'player-file';
+            
+            card.innerHTML = `
+                <span class="file-icon">📄</span>
+                <span class="player-name">${name}.json</span>
+                
+                <div class="data-line">
+                    <span class="data-label">Pass_Hash:</span> ${data.pass || 'N/A'}
+                </div>
+                <div class="data-line">
+                    <span class="data-label">Total_XP:</span> <span style="color:#ffcf33">${data.xp || 0}</span>
+                </div>
+                <div class="data-line">
+                    <span class="data-label">Inventory:</span> [${data.inventory ? data.inventory.join(', ') : ''}]
+                </div>
+
+                <div class="controls">
+                    <button class="delete-btn" onclick="deleteFile('${name}')">حذف الملف 🗑️</button>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+
+        async function deleteFile(username) {
+            if (confirm(`هل أنت متأكد من حذف ملف اللاعب [${username}] نهائياً؟`)) {
+                await fetch(`${DB_URL}/${username}.json`, { method: 'DELETE' });
+                loadAllFiles(); // إعادة التحميل
+            }
+        }
+
+        // تشغيل النظام عند الفتح
+        loadAllFiles();
+    </script>
+</body>
+</html>
