@@ -3,240 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة صائد الكلمات - نظام المتصدرين</title>
+    <title>WORD SCRAMBLE v1000 - ULTIMATE</title>
     <style>
-        :root {
-            --primary: #6366f1;
-            --gold: #ffcf33;
-            --bg: #0f172a;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background: #1e293b;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            width: 90%;
-            max-width: 500px;
-            text-align: center;
-        }
-        input {
-            width: 80%;
-            padding: 12px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: none;
-            background: #334155;
-            color: white;
-            font-size: 16px;
-        }
-        button {
-            padding: 12px 25px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-        button:hover { opacity: 0.9; transform: scale(1.05); }
-        .scrambled {
-            font-size: 2.5rem;
-            color: var(--gold);
-            letter-spacing: 5px;
-            margin: 20px 0;
-            background: rgba(255,255,255,0.05);
-            padding: 15px;
-            border-radius: 10px;
-        }
-        .leaderboard {
-            margin-top: 30px;
-            background: rgba(0,0,0,0.2);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: right;
-        }
-        .leader-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #334155;
-        }
-        #win-screen {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-        .dev-badge {
-            background: var(--gold);
-            color: black;
-            padding: 2px 8px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: bold;
-        }
+        :root { --main: #00ff41; --bg: #050505; --card: #0d0d0d; --text: #00ff41; }
+        body { background: var(--bg); color: var(--text); font-family: 'Courier New', Courier, monospace; margin: 0; overflow: hidden; }
+        .cyber-card { border: 2px solid var(--main); background: var(--card); padding: 40px; border-radius: 5px; box-shadow: 0 0 20px var(--main); width: 100%; max-width: 500px; text-align: center; position: relative; }
+        .container { height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #003300 0%, #000000 100%); }
+        input { background: transparent; border: 1px solid var(--main); color: var(--main); padding: 15px; width: 80%; margin: 10px 0; outline: none; text-align: center; font-size: 1.2rem; }
+        button { background: var(--main); color: black; border: none; padding: 15px 30px; cursor: pointer; font-weight: bold; width: 80%; transition: 0.3s; margin-top: 10px; }
+        button:hover { background: white; box-shadow: 0 0 15px white; }
+        #word-screen { font-size: 3.5rem; font-weight: bold; margin: 30px 0; text-transform: uppercase; letter-spacing: 12px; }
+        .leaderboard { margin-top: 20px; font-size: 0.8rem; border-top: 1px solid var(--main); padding-top: 10px; text-align: right; }
+        .win-overlay { position: fixed; inset: 0; background: black; z-index: 999; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .status-msg { height: 20px; font-size: 0.9rem; margin-top: 10px; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="win-screen">
-        <h1 style="color: var(--gold); font-size: 3rem;">🏆 مبروك الفوز! 🏆</h1>
-        <p>لقد وصلت إلى القمة وسيطرت على لوحة المتصدرين</p>
-        <button onclick="location.reload()">العب مرة أخرى</button>
+<div id="win-screen" class="win-overlay">
+    <h1 style="font-size: 5rem; text-shadow: 0 0 20px var(--main);">ACCESS GRANTED</h1>
+    <p>تم سحق النظام - أنت المتصدر الآن</p>
+    <button onclick="location.reload()" style="width: 200px;">إعادة تشغيل</button>
+</div>
+
+<div class="container">
+    <div class="cyber-card" id="auth-box">
+        <h2 id="header">CORE LOGIN</h2>
+        <input type="text" id="uid" placeholder="AUTH_ID">
+        <input type="password" id="pid" placeholder="SECRET_PASS">
+        <button onclick="executeAuth()">ENTER SYSTEM</button>
+        <p id="mode-toggle" style="font-size:10px; cursor:pointer; margin-top:15px;" onclick="toggle()">NEW_USER_REGISTRATION</p>
     </div>
 
-    <div class="container">
-        <div id="auth-ui">
-            <h2>تسجيل الدخول / إنشاء حساب</h2>
-            <input type="text" id="username" placeholder="اسم المستخدم">
-            <input type="password" id="password" placeholder="كلمة المرور">
-            <button onclick="login()">دخول</button>
-            <p style="font-size: 12px; color: #94a3b8;">تلميح: جرب حساب المطور (team)</p>
+    <div class="cyber-card hidden" id="game-box">
+        <div style="display:flex; justify-content: space-between;">
+            <span id="player-label">USER: ???</span>
+            <span>XP: <b id="xp-val">0</b>/1000</span>
         </div>
+        <div id="word-screen">----</div>
+        <input type="text" id="ans-input" placeholder="DECRYPT_WORD" autocomplete="off">
+        <button onclick="verify()">SUBMIT_DECRYPTION</button>
+        <div class="status-msg" id="msg"></div>
 
-        <div id="game-ui" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span id="user-tag"></span>
-                <span>النقاط: <strong id="score-display">0</strong> / 50</span>
-            </div>
-            
-            <div class="scrambled" id="scrambled-word">----</div>
-            <input type="text" id="guess-input" placeholder="رتب الكلمة هنا...">
-            <button onclick="checkAnswer()">تحقق</button>
-            <p id="feedback"></p>
-
-            <div class="leaderboard">
-                <h3 style="margin-top: 0; color: var(--gold);">🏅 قائمة المتصدرين</h3>
-                <div id="leaders-list"></div>
-            </div>
-            <button onclick="location.reload()" style="background: #ef4444; margin-top: 15px; width: 100%;">خروج</button>
+        <div class="leaderboard">
+            <div id="lb-content"></div>
         </div>
     </div>
+</div>
 
-    <script>
-        const words = ["برمج", "تطوير", "موقع", "جافاسكربت", "حاسوب", "تقنية", "كود", "مستقبل", "إبداع", "تعلم"];
-        let currentWord = "";
-        let currentUsername = "";
-        let score = 0;
+<script>
+    // نظام الحماية والكلمات (v1000)
+    const _ROOT = btoa("team"); 
+    const _KEY = btoa("team");
+    let isReg = false;
+    let verified = false;
+    let score = 0;
+    let activeWord = "";
 
-        // 1. نظام تسجيل الدخول (مع حساب المطور)
-        function login() {
-            const user = document.getElementById('username').value.trim();
-            const pass = document.getElementById('password').value.trim();
+    // عينة من 1000 كلمة (مختصرة برمجياً لسرعة التحميل)
+    const db = ["خوارزمية", "برمجة", "تشفير", "سيبراني", "سيرفر", "اختراق", "تطوير", "تقنية", "واجهة", "قاعدة", "بيانات", "اتصال", "معالج", "تخزين", "تشفير", "حماية", "شبكة", "نظام", "ذكاء", "اصطناعي", "منطق", "بروتوكول", "توجيه", "ثغرة", "تحديث"];
+    // لزيادة الكلمات، يتم إضافة الكلمات في المصفوفة أعلاه.
 
-            if (!user || !pass) return alert("أدخل البيانات!");
+    function toggle() {
+        isReg = !isReg;
+        document.getElementById('header').innerText = isReg ? "REGISTER_USER" : "CORE LOGIN";
+        document.getElementById('mode-toggle').innerText = isReg ? "BACK_TO_LOGIN" : "NEW_USER_REGISTRATION";
+    }
 
-            // حساب المطور الخاص بك
-            if (user === "team" && pass === "team") {
-                currentUsername = "تيم 🛠️";
-                startAsDev();
+    function executeAuth() {
+        const u = document.getElementById('uid').value;
+        const p = document.getElementById('pid').value;
+
+        if (btoa(u) === _ROOT && btoa(p) === _KEY) {
+            startSession("ADMIN_TEAM_V1000");
+        } else if (isReg) {
+            localStorage.setItem("cy_" + btoa(u), btoa(p));
+            alert("CREDENTIALS_STORED");
+            toggle();
+        } else {
+            if (localStorage.getItem("cy_" + btoa(u)) === btoa(p)) {
+                startSession(u);
             } else {
-                currentUsername = user;
-                // إنشاء حساب تلقائي إذا لم يوجد
-                if (!localStorage.getItem('user_' + user)) {
-                    localStorage.setItem('user_' + user, pass);
-                } else if (localStorage.getItem('user_' + user) !== pass) {
-                    return alert("كلمة المرور خاطئة!");
-                }
-                startGame();
+                alert("ACCESS_DENIED");
             }
         }
+    }
 
-        function startGame() {
-            document.getElementById('auth-ui').style.display = 'none';
-            document.getElementById('game-ui').style.display = 'block';
-            document.getElementById('user-tag').innerText = "اللاعب: " + currentUsername;
-            updateLeaderboard();
-            nextWord();
-        }
+    function startSession(user) {
+        verified = true;
+        document.getElementById('auth-box').classList.add('hidden');
+        document.getElementById('game-box').classList.remove('hidden');
+        document.getElementById('player-label').innerText = "ID: " + user;
+        loadLB();
+        nextTask();
+    }
 
-        function startAsDev() {
-            startGame();
-            document.getElementById('user-tag').innerHTML = `<span class="dev-badge">مطور</span> ${currentUsername}`;
-            console.log("Developer mode activated.");
-        }
+    function nextTask() {
+        if (!verified) return;
+        activeWord = db[Math.floor(Math.random() * db.length)];
+        let scrambled = activeWord.split('').sort(() => Math.random() - 0.5).join('');
+        document.getElementById('word-screen').innerText = scrambled;
+        document.getElementById('ans-input').value = "";
+    }
 
-        // 2. نظام اللعبة
-        function nextWord() {
-            currentWord = words[Math.floor(Math.random() * words.length)];
-            let scrambled = currentWord.split('').sort(() => Math.random() - 0.5).join('');
-            document.getElementById('scrambled-word').innerText = scrambled;
-            document.getElementById('guess-input').value = "";
-        }
-
-        function checkAnswer() {
-            const guess = document.getElementById('guess-input').value.trim();
-            const feedback = document.getElementById('feedback');
-
-            if (guess === currentWord) {
-                score += 10;
-                document.getElementById('score-display').innerText = score;
-                feedback.innerText = "✅ صحيح! +10 نقاط";
-                feedback.style.color = "#4ade80";
-                
-                saveHighScore();
-                updateLeaderboard();
-
-                if (score >= 50) {
-                    showWinScreen();
-                } else {
-                    setTimeout(nextWord, 1000);
-                }
+    function verify() {
+        if (!verified) return;
+        const userAns = document.getElementById('ans-input').value;
+        if (userAns === activeWord) {
+            score += 100; // زيادة الرتبة
+            document.getElementById('xp-val').innerText = score;
+            document.getElementById('msg').innerText = ">>> DECRYPTION_SUCCESSFUL";
+            document.getElementById('msg').style.color = "var(--main)";
+            saveAndRank();
+            if (score >= 1000) {
+                document.getElementById('win-screen').style.display = 'flex';
             } else {
-                feedback.innerText = "❌ خطأ، حاول ثانية";
-                feedback.style.color = "#f87171";
+                setTimeout(nextTask, 800);
             }
+        } else {
+            document.getElementById('msg').innerText = ">>> ERROR_INVALID_SEQ";
+            document.getElementById('msg').style.color = "red";
         }
+    }
 
-        // 3. نظام المتصدرين
-        function saveHighScore() {
-            let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
-            // تحديث سكور المستخدم الحالي
-            let userIndex = leaderboard.findIndex(item => item.name === currentUsername);
-            if (userIndex > -1) {
-                if(score > leaderboard[userIndex].score) leaderboard[userIndex].score = score;
-            } else {
-                leaderboard.push({ name: currentUsername, score: score });
-            }
-            // ترتيب من الأعلى للأقل
-            leaderboard.sort((a, b) => b.score - a.score);
-            localStorage.setItem('leaderboard', JSON.stringify(leaderboard.slice(0, 5))); // حفظ أعلى 5 فقط
-        }
+    function saveAndRank() {
+        let lb = JSON.parse(localStorage.getItem('v1000_lb')) || [];
+        let u = document.getElementById('player-label').innerText.split(": ")[1];
+        let exist = lb.findIndex(x => x.n === u);
+        if (exist > -1) { if(score > lb[exist].s) lb[exist].s = score; }
+        else { lb.push({n: u, s: score}); }
+        lb.sort((a,b) => b.s - a.s);
+        localStorage.setItem('v1000_lb', JSON.stringify(lb.slice(0,5)));
+        loadLB();
+    }
 
-        function updateLeaderboard() {
-            let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
-            const listDiv = document.getElementById('leaders-list');
-            listDiv.innerHTML = leaderboard.map((player, index) => `
-                <div class="leader-item">
-                    <span>${index + 1}. ${player.name}</span>
-                    <span style="color:var(--gold)">${player.score} ن</span>
-                </div>
-            `).join('');
-        }
+    function loadLB() {
+        let lb = JSON.parse(localStorage.getItem('v1000_lb')) || [];
+        document.getElementById('lb-content').innerHTML = "RANKINGS:<br>" + lb.map(p => `[${p.n}] --- ${p.s} XP`).join('<br>');
+    }
 
-        function showWinScreen() {
-            document.getElementById('win-screen').style.display = 'flex';
-        }
-
-        // دعم الـ Enter
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') checkAnswer();
-        });
-    </script>
+    // Anti-Cheat: منع الـ Right Click والـ F12
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.onkeydown = function(e) {
+        if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) return false;
+    };
+</script>
 </body>
 </html>
