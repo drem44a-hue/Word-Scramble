@@ -1,1 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Multiplayer Cyber Word v1000</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon: #00f2fe; --gold: #ffcf33; --bg: #050505; }
+        body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: white; text-align: center; }
+        .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 30px; margin: 20px; }
+        .room-controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+        input { padding: 12px; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; text-align: center; }
+        .btn { padding: 12px 25px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-neon { background: var(--neon); color: black; }
+        .word-box { font-size: 4rem; color: var(--gold); letter-spacing: 15px; margin: 30px 0; text-shadow: 0 0 20px var(--gold); }
+        .players-list { display: flex; justify-content: space-around; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; }
+        .player-tag { padding: 5px 15px; border-bottom: 2px solid var(--neon); }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
 
+<div id="setup-area" class="glass" style="max-width: 500px; margin: 100px auto;">
+    <h1 style="color: var(--neon);">الدخول الجماعي</h1>
+    <input type="text" id="user-name" placeholder="اسمك">
+    <div class="room-controls" style="margin-top: 20px;">
+        <input type="text" id="room-id" placeholder="كود الغرفة">
+        <button class="btn btn-neon" onclick="joinRoom()">دخول / إنشاء</button>
+    </div>
+</div>
+
+<div id="game-area" class="hidden">
+    <div class="players-list glass" id="players-box">
+        </div>
+
+    <div class="glass">
+        <div style="color: #888;">كود الغرفة الحالي: <b id="current-room-display" style="color: var(--neon);"></b></div>
+        <div class="word-box" id="sync-word">----</div>
+        <input type="text" id="guess-input" placeholder="اكتب الحل بسرعة!">
+        <button class="btn btn-neon" onclick="submitGuess()">إرسال</button>
+    </div>
+</div>
+
+<script>
+    // إعدادات الـ Real-time
+    const DB_BASE = "https://your-firebase-id.firebaseio.com/rooms"; 
+    let myName = "";
+    let roomCode = "";
+    let currentWord = "";
+
+    // 1. الانضمام للغرفة ومراقبتها
+    async function joinRoom() {
+        myName = document.getElementById('user-name').value;
+        roomCode = document.getElementById('room-id').value;
+
+        if (!myName || !roomCode) return alert("أكمل البيانات");
+
+        document.getElementById('setup-area').classList.add('hidden');
+        document.getElementById('game-area').classList.remove('hidden');
+        document.getElementById('current-room-display').innerText = roomCode;
+
+        // إضافة نفسي للغرفة
+        await fetch(`${DB_BASE}/${roomCode}/players/${myName}.json`, {
+            method: 'PUT',
+            body: JSON.stringify({ score: 0 })
+        });
+
+        // مراقبة الغرفة (Polling - لتبسيط الكود بدون SDK)
+        setInterval(syncRoom, 2000); 
+        checkAndGenerateWord(); 
+    }
+
+    // 2. مزامنة البيانات (اللاعبين والكلمة)
+    async function syncRoom() {
+        const res = await fetch(`${DB_BASE}/${roomCode}.json`);
+        const data = await res.json();
+        if (!data) return;
+
+        // تحديث الكلمة إذا تغيرت عند لاعب آخر
+        if (data.currentWord && data.currentWord !== currentWord) {
+            currentWord = data.currentWord;
+            document.getElementById('sync-word').innerText = data.scrambled;
+        }
+
+        // تحديث قائمة اللاعبين ونقاطهم
+        const playersBox = document.getElementById('players-box');
+        playersBox.innerHTML = "";
+        for (let p in data.players) {
+            playersBox.innerHTML += `<div class="player-tag">${p}: ${data.players[p].score} XP</div>`;
+        }
+    }
+
+    // 3. توليد كلمة جديدة للجميع
+    async function checkAndGenerateWord() {
+        const res = await fetch(`${DB_BASE}/${roomCode}/currentWord.json`);
+        const word = await res.json();
+        
+        if (!word) {
+            const list = ["برمجة", "تطوير", "ذكاء", "تشفير", "سيرفر"];
+            const newWord = list[Math.floor(Math.random() * list.length)];
+            const scrambled = newWord.split('').sort(() => Math.random() - 0.5).join('');
+            
+            await fetch(`${DB_BASE}/${roomCode}.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ currentWord: newWord, scrambled: scrambled })
+            });
+        }
+    }
+
+    // 4. إرسال الحل ومنافسة الآخرين
+    async function submitGuess() {
+        const guess = document.getElementById('guess-input').value;
+        const res = await fetch(`${DB_BASE}/${roomCode}/currentWord.json`);
+        const correct = await res.json();
+
+        if (guess === correct) {
+            alert("أنت الأسرع! +100 نقطة");
+            // زيادة نقاطي
+            await fetch(`${DB_BASE}/${roomCode}/players/${myName}/score.json`, {
+                method: 'PUT',
+                body: (await getMyScore() + 100)
+            });
+            // تغيير الكلمة للجميع
+            await fetch(`${DB_BASE}/${roomCode}/currentWord.json`, { method: 'DELETE' });
+            checkAndGenerateWord();
+        } else {
+            alert("خطأ! حاول مجدداً");
+        }
+        document.getElementById('guess-input').value = "";
+    }
+
+    async function getMyScore() {
+        const res = await fetch(`${DB_BASE}/${roomCode}/players/${myName}/score.json`);
+        return (await res.json()) || 0;
+    }
+</script>
+</body>
+</html>
