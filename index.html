@@ -52,7 +52,7 @@
 <body>
 
 <div class="app-card" id="auth-box">
-    <h1 style="color:var(--gold)">نظام التشفير العالمي</h1>
+    <h1 style="color:var(--gold)">لعبه تخمين الكلمات</h1>
     <input type="text" id="u-in" placeholder="اسم المستخدم">
     <input type="password" id="p-in" placeholder="كلمة المرور">
     <button class="btn-main" onclick="processAuth()">تسجيل الدخول</button>
@@ -73,7 +73,7 @@
     </div>
 
     <div class="word-box" id="scrambled-target">----</div>
-    <input type="text" id="user-ans" placeholder="فك الشفرة..." autocomplete="off">
+    <input type="text" id="user-ans" placeholder="خمن الاسم..." autocomplete="off">
     <button class="btn-main" onclick="verifyGuess()">تحقق من التسلسل</button>
 
     <div class="leaderboard">
@@ -107,7 +107,7 @@
 
     function switchAuth() {
         isReg = !isReg;
-        document.querySelector('#auth-box h1').innerText = isReg ? "إنشاء ملف جديد" : "نظام التشفير العالمي";
+        document.querySelector('#auth-box h1').innerText = isReg ? "إنشاء حساب جديد" : "تخمين الكلمات";
     }
 
     function processAuth() {
@@ -118,7 +118,7 @@
             initGame(u, true);
         } else if (isReg) {
             localStorage.setItem("vx_" + btoa(u), btoa(p));
-            alert("تم تشفير وحفظ حسابك."); switchAuth();
+            alert(" تم حفظ حسابك."); switchAuth();
         } else {
             if (localStorage.getItem("vx_" + btoa(u)) === btoa(p)) {
                 initGame(u, false);
@@ -155,7 +155,7 @@
             if (currentXP >= 1000) { alert("مبروك! لقد سحقت النظام."); location.reload(); }
             else generateNew();
         } else {
-            alert("فشل في فك الشفرة!");
+            alert("فشل في تخمين الكلمه!");
         }
     }
 
